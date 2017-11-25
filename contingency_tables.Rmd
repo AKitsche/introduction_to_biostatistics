@@ -1,0 +1,56 @@
+---
+title: "Contingency Tables and Categorical Data"
+author: Andreas Kitsche
+output: github_document
+---
+
+When a sample of $n$ observations in two qualitative (categorical) variables are available, they can be arranged into a cross-classification in which the number of observations falling in each cell of the table is recorded. This table is also denoted as contingency table, in which the observations for a sample of individuals or objects are cross-classified whith respect to two categorical variables. Testing for the independence of the two variables $x$ and $y$ is of most interest in general.
+
+Under the null hypothesis of independence of the row variable $x$ and the column variable $y$, estimated expected values $E_{jk}$ for cell $(j,k)$ can be computed from the corresponding margin totals $E_{jk}=n_{j.}n_{.k}/n_{.}$. The test statistic for assessing independence is
+
+$$
+\chi^{2}=\sum_{j=1}^{r}\sum_{k=1}^{c}\frac{(n_{jk}-E_{jk})^2}{E_{jk}}
+$$
+Under the null hypothesis of independence, the test statistic $\chi^{2}$ is asymptotically distributed according to a $\chi^{2}$-distribution with $(r-1)(c-1)$degrees of freedom, the corresponding test is usually known as chi-squared test. 
+
+##Example - Goodness of fit test (One-variable $\chi^{2}$-test)
+We think that the proportion of nucleotides A, T, C, G should be equally present in a given DNA sequence, with proportion 0.25 for each. Let's see for a particular gene how good this fit really is. For this example we will use the sequence for human myoglobin, a muscle protein which carries oxygen. The obtained number of each nucleotide is A-237, T-278, C-309, G-242. 
+Formulate an appropriate null and alternative hypothesis:
+
+$$
+H_{0}:\hspace{0.5cm} \pi_{A}=0.25\hspace{0.5cm}  \pi_{G}=0.25\hspace{0.5cm} \pi_{C}=0.25\hspace{0.5cm} \pi_{T}=0.25
+$$
+
+$$
+H_{A}:\hspace{0.5cm} H_{0} \hspace{0.5cm} is\hspace{0.5cm} false
+$$
+
+Plotting the frequency of each nucleotide using the `barplot()` function
+```{r cache=TRUE, echo=TRUE, error=TRUE, fig.show='asis', message=TRUE, warning=TRUE, results='asis',tidy=TRUE}
+obs <- c(237, 278, 309, 242)
+barplot(obs, ylab="absolute frequencies of nucleotides", 
+             main="Frequencies of nucleotides of Myoglobin", 
+             names.arg=c("A","T","C","G"))
+```
+
+Calculating the corresponding chi square test with R
+```{r cache=TRUE, echo=TRUE, error=TRUE, fig.show='asis', message=TRUE, warning=TRUE, results='asis',tidy=TRUE}
+expected <- c(0.25, 0.25, 0.25, 0.25)
+chisq.test(obs,p = expected)
+```
+```{r results='hide', message=FALSE, warning=FALSE, cache=TRUE, fig.show='asis', echo=FALSE,tidy=TRUE}
+ChiTest <- chisq.test(obs,p = expected)
+teststatistic <- ChiTest$statistic
+teststatistic
+#null hypothesis
+x <-seq(-10,20, by=0.001)
+curve(dchisq(x, df=3),from=-10, to=20, main="Density of the Chi square distribution with df=3", ylab="density")
+#input teststatistic
+lines(x=c(teststatistic, teststatistic), y=c(0,0.05))
+text(x=10, y=0.08, "X-squared= 12.79174")
+x.x <- seq(teststatistic, 20, by=0.001)
+y.x <- dchisq(x.x, df=3)
+polygon(x = c(teststatistic, x.x, 20, teststatistic), y=c(0, y.x, 0, 0), col="blue")
+1-pchisq(q=teststatistic, df=3)
+text(x=17, y=0.02, "p-value = 0.005")
+```

@@ -1,0 +1,67 @@
+---
+title: "Correlation and Regression"
+author: Andreas Kitsche
+output: github_document
+---
+
+##Correlation
+Correlation metrics are measures of associations between variables. Correlation is a numeric measure of the strength of a linear relationship between two numeric variables. Correlation metrics have values between 1 and -1 where 1 is a perfect positive correlation, -1 is a perfect negative correlation, and 0 implies there is no
+correlation. The commonly used correlation coefficient according to Pearson is calculated by 
+$$
+r = \frac{\frac{1}{n-1}\sum_{i=1}^{n}(x_{i}-\bar{x})(y_{i}-\bar{y})}{\sqrt{\frac{1}{n-1}\sum_{i=1}^{n}(x_{i}-\bar{x})^{2}}\sqrt{\frac{1}{n-1}\sum_{i=1}^{n}(y_{i}-\bar{y})^{2}}}
+$$
+The data set `Spruce` contains the observations on 72 black spruce seedlings. Black spruce (Picea mariana) is a species of low-growing coniferious tree found across the northern part of North America. It is commonly found on wet organic soils. Black spruce seedlings were planted in four plots under varying conditions and their heights and diameters were measured over the course of 5 years.  
+
+```{r results='hide', echo=FALSE}
+Spruce <- read.csv("Spruce.csv", sep=";")
+str(Spruce)
+Spruce$HeightChange <- Spruce$Height5 -Spruce$Height0
+Spruce$DiameterChange <- Spruce$Diameter5 - Spruce$Diameter0
+plot(DiameterChange ~ HeightChange, data=Spruce,pch=21, bg="grey", xlab="Change in height (cm)", ylab="Change in diameter (cm)", main="Change in diameter against change in height \n of Black Spruce seedlings over a 5-year period", ylim=c(-2,15), xlim=c(-2,60))
+abline(v=mean(Spruce$HeightChange))
+abline(h=mean(Spruce$DiameterChange))
+```
+
+##Regression
+We now characterize a linear relationship between two variables by determining the "best" line that describes the relationship. In most cases we pick the line $y = a + bx$ to make the vertical distances from observations to the line small. 
+
+```{r results='hide', echo=FALSE}
+plot(DiameterChange ~ HeightChange, data=Spruce,pch=21, bg="grey", xlab="Change in height (cm)", ylab="Change in diameter (cm)", main="Change in diameter against change in height \n of Black Spruce seedlings over a 5-year period", ylim=c(-2,15),xlim=c(-2,60))
+fm1 <- lm(DiameterChange ~ HeightChange, data=Spruce)
+abline(fm1, col="red")
+with(Spruce, segments(HeightChange, fitted(fm1), HeightChange, DiameterChange))
+```
+
+R provides the function \verb@lm()@ to fit a linear regression model. 
+
+```{r}
+Spruce.lm <- lm(DiameterChange ~ HeightChange, data=Spruce)
+Spruce.lm
+```
+
+You can also get some useful parameters of your fitted model with the functions:
+
+* coefficients() - a named vector of coefficients
+* fitted.values() - the fitted mean values
+* residuals() - the residuals, that is response minus fitted values
+* predict() - predicted values based on linear model object
+* summary() -  print a summary of the fitted model object
+
+```{r}
+summary(Spruce.lm)
+```
+
+The simple linear regression model assumes that the relationship between the response and explanatory variable is linear. We can check this assumption via plotting a residual plot. This is a plot of $y_{i}-\hat{y_{i}}$ against $x_{i}$. The residual is the difference between observed $y$ value and the corresponding fitted value: it provides information on how far off the straight line is in predicting the $y_{i}$ value at a particular data point $x_{i}$. If the residual is positive, then the predicted value is an underestimate, whereas if the residual is negative, then the predicted value is an overestimate. The plot of residuals against the predictor variable provides visual information on the appropriateness of a straight line model. Ideally, points should be scattered randomly about the reference line $y=0$.
+
+```{r results='hide', echo=FALSE}
+plot(Spruce$HeightChange, residuals(Spruce.lm), main="Residual plot of Spruce data", ylab="Residuals", xlab="Height change (cm)", pch=16)
+abline(h=0, col="red")
+```
+
+A further assumption of the simple linear regression is, that the observations $y_{i}$ derived from a normal distribution. This can be checked with a Normal-Quantile plot of the standardized residuals:
+
+```{r results='hide', echo=FALSE}
+r.Spruce.lm <- rstandard(Spruce.lm)
+qqnorm(r.Spruce.lm, main="Normal Quantile-Quantile plot", ylab="Quantiles of standarized residuals", xlab="Theoretical Quantiles of a standard normal distribution", pch=16)
+qqline(r.Spruce.lm)
+```

@@ -1,0 +1,49 @@
+---
+title: "Analysis of Variance (ANOVA)"
+author: Andreas Kitsche
+output: github_document
+---
+
+##One-way ANOVA
+Analysis of variance, ANOVA, is a method of comparing means based on variations from the mean. 
+A one-way analysis of variance is a generalization of the t-test for two independent sample, allowing us to compare means for several independent samples from normally distributed populations.
+
+
+The data set `PlantGrowth` (available from the R data base) contains the results from an experiment to compare yields (as measured by dried weight of plants) obtained under a control and two different treatment conditions. A researcher want's to know, if there is a difference in mean weight for the three different conditions. We use a one-way analysis of variance to anwser this question.
+First, we display the data using a boxplot to examine the distribution of each treatment group:
+
+```{r results='hide', echo=FALSE}
+boxplot(weight ~ group, data = PlantGrowth, main = "Plant Growth data", ylab = "Dried weight of plants", col="lightblue", ylim=c(2,8), names=c("control","treatment 1","treatment 2"))
+```
+
+We will further calculate some summary statistics for each group:
+```{r  echo=TRUE}
+aggregate(weight ~ group, data = PlantGrowth,FUN=length)
+aggregate(weight ~ group, data = PlantGrowth,FUN=mean)
+aggregate(weight ~ group, data = PlantGrowth,FUN=median)
+aggregate(weight ~ group, data = PlantGrowth,FUN=sd)
+aggregate(weight ~ group, data = PlantGrowth,FUN=var)
+```
+To calculate the ANOVA in R we can use the `aov()` function:
+```{r}
+summary(aov(weight ~ group, data = PlantGrowth))
+```
+```{r  results='hide', echo=FALSE}
+ANOVAmodel <- lm(weight ~ group, data = PlantGrowth)
+ANOVAmodel
+ANOVA <-  anova(ANOVAmodel)
+ANOVA
+x <- seq(0, 10,by=.05)
+plot(x,df(x, df1=2, df2=27),main="F distribution \n with df1=2, df2=27",type="l",xlab="F value", ylab="Density")
+x.x <- seq(ANOVA$F[1], 10, by=0.001)
+y.x <- df(x.x, df1=2, df2=27)
+polygon(x = c(ANOVA$F[1], x.x, 10, ANOVA$F[1]), y=c(0, y.x, 0, 0), col="red")
+text(4.846088, 0.15, paste("F value =",round(ANOVA$F[1],2)))
+```
+Furthermore we can check the assumptions that the samples come from normally distributed populations
+with the same standard deviation. We can construct a QQ-plot of the residuals to assess the assumptiom
+of normality.
+```{r  results='hide', echo=FALSE}
+qqnorm(residuals(ANOVAmodel))
+qqline(residuals(ANOVAmodel))
+```

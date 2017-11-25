@@ -1,0 +1,56 @@
+---
+title: "Hypothesis testing - t-test"
+author: Andreas Kitsche
+output: github_document
+---
+
+The core idea of statistical significance or classical hypothesis testing is - to calculate how often pure random chance would give an effect as large as that observed in the data, in the absence of any real effect. If that probability is small enough, we conclude that the data provide convincing evidence of a real effect. 
+Here we want to review the basic ideas of hypothesis testing using the t-test and the data set `PlantGrowth` from the R data base.
+
+##One sample t-test
+We assume the research question is to check, if the mean weight of the control plants (measured by dried weight of plants) is greater than 4.5. So we have to type an appropriate null and alternative hypothesis. Remember the following definitions:
+
+* null hypothesis - denoted $H_{0}$, is a statement that corresponds to no real effect
+* alternative hypothesis - denoted $H_{A}$, is a statement that there is a real effect
+
+A hypothesis should involve a statement about a population parameter. 
+
+$$ H_{0}:\mu=\mu_{0} \hspace{3cm} H_{A}: \mu > \mu_{0} $$
+
+$$ H_{0} $$
+
+where $\mu_{0}=4.5$
+The next two ingedients in hypothesis testing are a numerical measure of the effect and the probability that chance alone could produce that measure. 
+
+* test statistic - A test statistic is a numerical function of the data whose value determines the result of the test. 
+* p-value - is the probability that chance alone would produce a test statistic as extreme as the observed test statistic. 
+
+We now assume that our data are independent data, that derived from a normal distribution with the parameters $\mu$ and $\sigma$. Then an appropriate test statistic is:
+\[
+test statistic = t = \frac{\overline{x}-\mu_{0}}{s/ \sqrt{n}}
+\]
+where $\overline{x}$ is the sample mean, $s$ is the sample standard deviation and $n$ is the number of independent observations. Under the null hypothesis (no effect), the test statistic has a t-distribution with (n-1) degrees of freedom. The p-value is the probability that chance alone would produce a test statistic as extreme as or more extreme than the observed value t, if the null hypothesis is true.
+
+```{r results='hide', echo=FALSE, fig.show='asis'}
+data1 <- subset(PlantGrowth, group=="ctrl", select=weight, drop=TRUE)
+data1
+n <- length(data1)
+teststatistic <- (mean(data1)-4.5)/(sd(data1)/sqrt(n))
+teststatistic
+#null hypothesis
+x <-seq(-10,10, by=0.001)
+curve(dt(x, df=n-1),from=-10, to=10, main="Density of the t-distribution with df=n-1", ylab="density")
+#input teststatistic
+lines(x=c(teststatistic, teststatistic), y=c(0,0.05))
+text(x=4, y=0.08, "t= 2.885")
+x.x <- seq(teststatistic, 10, by=0.001)
+y.x <- dt(x.x, df=n-1)
+polygon(x = c(teststatistic, x.x, 10, teststatistic), y=c(0, y.x, 0, 0), col="blue")
+1-pt(q=teststatistic, df=n-1)
+text(x=6, y=0.02, "p-value = 0.009")
+```
+
+In R it is easy to calculate the t-test using the `t.test()` function:
+```{r}
+t.test(data1, alternative="greater", mu=4.5)
+```
